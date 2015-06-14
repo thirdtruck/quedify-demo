@@ -1,0 +1,29 @@
+{
+  "name": "quedify-test",
+  "version": "0.0.1a",
+  "description": "Programming Exercise for Quedify",
+  "homepage": "https://github.com/thirdtruck/quedify-test.git",
+  "main": "server.js",
+  "scripts": {
+    "test": "grunt test",
+    "start": ""
+  },
+  "author": {
+    "name": "James C. Holder",
+    "email": "dev@thirdtruck.org",
+    "web": "http://thirdtruck.org"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/hakimel/quedify-test.git"
+  },
+  "engines": {
+    "node": "~0.10.0"
+  },
+  "dependencies": {
+    "underscore": "~1.8.3",
+    "express": "~4.0.0"
+  },
+  "devDependencies": {
+  }
+}
