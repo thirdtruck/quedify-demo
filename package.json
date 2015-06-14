@@ -1,6 +1,7 @@
 {
   "name": "quedify-test",
   "version": "0.0.1a",
+  "prviate": true,
   "description": "Programming Exercise for Quedify",
   "homepage": "https://github.com/thirdtruck/quedify-test.git",
   "main": "server.js",
@@ -22,7 +23,8 @@
   },
   "dependencies": {
     "underscore": "~1.8.3",
-    "express": "~4.0.0"
+    "express": "~4.12.4",
+    "mongodb": "~2.0.33"
   },
   "devDependencies": {
   }
