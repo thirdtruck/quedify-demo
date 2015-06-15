@@ -1,5 +1,7 @@
-var MongoClient = require('mongodb').MongoClient,
-    assert = require('assert');
+var _ = require('underscore'),
+    Backbone = require ('backbone'),
+    assert = require('assert'),
+    MongoClient = require('mongodb').MongoClient;
 
 var insertDocuments = function (db, callback) {
   var collection = db.collection('documents');
@@ -42,6 +44,7 @@ var findDocuments = function (db, callback) {
   });
 };
 
+/*
 var url = "mongodb://assessment:assessmentEvents2014@ds037977.mongolab.com:37977/events";
 MongoClient.connect(url, function (err, db) {
   assert.equal(null, err);
@@ -56,3 +59,4 @@ MongoClient.connect(url, function (err, db) {
     });
   });
 });
+*/
