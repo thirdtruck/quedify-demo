@@ -12,16 +12,29 @@ var Events = Backbone.Collection.extend({
     var events = this;
 
     events.mongodb = options.mongodb;
+    events.remoteCollection = events.mongodb.collection('events');
   },
   sync: function (method, collection, options) {
     var events = this;
 
-    console.log("Fetching ...");
+    console.log("Syncing ...");
 
-    console.dir(method);
-    console.dir(collection);
-    console.dir(options);
-  }
+    if (method == "read") {
+      events._findEvents(options);
+    }
+  },
+  _findEvents: function (options) {
+    var events = this;
+
+    events.remoteCollection.find({}).toArray(function (err, docs) {
+      if (err) {
+        options.error && options.error(err);
+      } else {
+        events.set(docs);
+        options.success && options.success(docs);
+      }
+    });
+  },
 });
 
 var mongoURL = "mongodb://assessment:assessmentEvents2014@ds037977.mongolab.com:37977/events";
@@ -32,11 +45,18 @@ MongoClient.connect(mongoURL, function (err, db) {
 
   var events = new Events({ mongodb: db });
   events.fetch({
-    success: function () { console.log("Fetched successfully!"); },
-    error: function () { console.log("Error while fetching."); }
+    success: function (collection, docs, options) {
+      console.log("Fetched successfully!");
+      console.dir(docs);
+      db.close();
+    },
+    error: function (collection, err, options) {
+      console.log("Error while fetching.");
+      console.dir(err);
+      db.close();
+    }
   });
 
-  db.close();
 });
 
 /*
