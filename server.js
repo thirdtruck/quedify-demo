@@ -1,7 +1,8 @@
 var _ = require('underscore'),
     Backbone = require ('backbone'),
     assert = require('assert'),
-    MongoClient = require('mongodb').MongoClient;
+    MongoClient = require('mongodb').MongoClient,
+    express = require('express');
 
 var Event = Backbone.Model.extend({
 });
@@ -37,6 +38,25 @@ var Events = Backbone.Collection.extend({
   },
 });
 
+var startServer = function (events) {
+  var app = express();
+
+  app.get('/', function (req, res) {
+    res.send('Hello, World!');
+  });
+
+  app.get('/events', function (req, res) {
+    res.json(events);
+  });
+
+  var server = app.listen(3000, function () {
+    var host = server.address().address;
+    var port = server.address().port;
+
+    console.log("Listening at http://%s:%s.", host, port);
+  });
+};
+
 var mongoURL = "mongodb://assessment:assessmentEvents2014@ds037977.mongolab.com:37977/events";
 MongoClient.connect(mongoURL, function (err, db) {
   assert.equal(null, err); // Full stop if we can't connect
@@ -48,7 +68,8 @@ MongoClient.connect(mongoURL, function (err, db) {
     success: function (collection, docs, options) {
       console.log("Fetched successfully!");
       console.dir(docs);
-      db.close();
+      startServer(events);
+      // TODO: Consider implementing this: http://glynnbird.tumblr.com/post/54739664725/graceful-server-shutdown-with-node-js-and-express
     },
     error: function (collection, err, options) {
       console.log("Error while fetching.");
