@@ -21,6 +21,7 @@ var Event = Backbone.Model.extend({
 var startServer = function (events) {
   var app = express();
   app.use(BodyParser.json());
+  app.use(express.static('public'));
 
   app.get('/events', function (req, res) {
     events.remoteCollection.find({ owner: "James" }).toArray(function (err, result) {
