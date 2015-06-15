@@ -2,7 +2,8 @@ var _ = require('underscore'),
     Backbone = require ('backbone'),
     assert = require('assert'),
     MongoClient = require('mongodb').MongoClient,
-    express = require('express');
+    express = require('express'),
+    BodyParser = require('body-parser');
 
 var Event = Backbone.Model.extend({
 });
@@ -40,13 +41,23 @@ var Events = Backbone.Collection.extend({
 
 var startServer = function (events) {
   var app = express();
-
-  app.get('/', function (req, res) {
-    res.send('Hello, World!');
-  });
+  app.use(BodyParser.json());
 
   app.get('/events', function (req, res) {
     res.json(events);
+  });
+
+  app.post('/events', function (req, res) {
+    console.log('req', req.body);
+    res.send('Tried to send ' + JSON.stringify(req.body));
+  });
+
+  app.put('/events', function (req, res) {
+    res.status(501).send('Request type not available.');
+  });
+
+  app.delete('/events', function (req, res) {
+    res.status(501).send('Request type not available.');
   });
 
   var server = app.listen(3000, function () {
