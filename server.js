@@ -128,7 +128,18 @@ var startServer = function (events) {
   });
 
   app.delete('/events', function (req, res) {
-    res.status(501).send('Request type not available.');
+    var id = req.body._id;
+    events.remoteCollection.remove(
+      { _id: id },
+      function (err, result) {
+        if (err) {
+          console.log("Unable to delete event with ID " + id + ":", err);
+          res.send("Error: " + err);
+        } else {
+          console.log("Deleted event with ID " + id);
+          res.send("Deleted event with ID " + id);
+        }
+      });
   });
 
   var server = app.listen(3000, function () {
