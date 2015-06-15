@@ -18,81 +18,21 @@ var Event = Backbone.Model.extend({
   },
 });
 
-var Events = Backbone.Collection.extend({
-  model: Event,
-  initialize: function (options) {
-    var events = this;
-
-    events.mongodb = options.mongodb;
-    events.remoteCollection = events.mongodb.collection('events');
-
-    _(events.triggers).each(function (callback, trigger) {
-      events.on(trigger, callback, events);
-    });
-  },
-  sync: function (method, collection, options) {
-    var events = this;
-
-    console.log("Syncing ...");
-
-    if (method == "read") {
-      events._findEvents(options);
-    }
-
-    if (method == "create") {
-      events._updateEvents(options);
-    }
-
-    if (method == "delete") {
-      console.log("Trying to delete");
-    }
-
-    if (method == "update") {
-      console.log("Trying to update");
-    }
-  },
-  _findEvents: function (options) {
-    var events = this;
-
-    events.remoteCollection.find({ owner: "James" }).toArray(function (err, docs) {
-      if (err) {
-        options.error && options.error(err);
-      } else {
-        events.set(docs, { silent: true });
-        options.success && options.success(docs);
-      }
-    });
-  },
-  _updateEvents: function (options) {
-    var events = this;
-
-    console.log(events.remoteCollection);
-    var batch = events.remoteCollection.initializeUnorderedBulkOp();
-
-    console.log("options");
-    console.dir(options);
-
-    var upsertResults = events.each(function (evt) {
-      batch.find({ _id : evt.id }).upsert().updateOne({ $set : evt.attributes });
-    });
-
-    batch.execute(function (err, docs) {
-      if (err) {
-        options.error && options.error(err);
-      } else {
-        events.set(docs);
-        options.success && options.success(docs);
-      }
-    });
-  },
-});
-
 var startServer = function (events) {
   var app = express();
   app.use(BodyParser.json());
 
   app.get('/events', function (req, res) {
-    res.json(events);
+    events.remoteCollection.find({ owner: "James" }).toArray(function (err, result) {
+      if (err) {
+        console.log("Unable to fetch all events: ", err);
+        res.send("Error: " + err);
+      } else {
+        console.log("Fetched all events");
+        console.dir(result)
+        res.json(result);
+      }
+    });
   });
 
   app.post('/events', function (req, res) {
@@ -112,7 +52,7 @@ var startServer = function (events) {
 
   app.put('/events/:id', function (req, res) {
     var id = new ObjectID(req.params.id);
-    events.remoteCollection.find({ _id: id }).toArray(function (err, result) {
+    events.remoteCollection.find({ owner: "James", _id: id }).toArray(function (err, result) {
       console.dir(result);
       if (err) {
         console.log("Error while finding event with ID " + id);
@@ -166,21 +106,10 @@ MongoClient.connect(mongoURL, function (err, db) {
 
   console.log("Connected to MongoDB at " + mongoURL);
 
-  var events = new Events({ mongodb: db });
-  events.fetch({
-    success: function (collection, docs, options) {
-      console.log("Fetched successfully!");
-      console.dir(docs);
-      startServer(events);
-      // TODO: Consider implementing this: http://glynnbird.tumblr.com/post/54739664725/graceful-server-shutdown-with-node-js-and-express
-    },
-    error: function (collection, err, options) {
-      console.log("Error while fetching.");
-      console.dir(err);
-      db.close();
-    }
+  startServer({
+    mongodb: db,
+    remoteCollection: db.collection('events'),
   });
-
 });
 
 /*
