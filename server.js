@@ -49,6 +49,8 @@ var startServer = function (events) {
 
   app.post('/events', function (req, res) {
     console.log('req', req.body);
+    var newEvent = new Event(req.body);
+    console.dir(newEvent);
     res.send('Tried to send ' + JSON.stringify(req.body));
   });
 
