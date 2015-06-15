@@ -2,6 +2,7 @@ var _ = require('underscore'),
     Backbone = require ('backbone'),
     assert = require('assert'),
     MongoClient = require('mongodb').MongoClient,
+    ObjectID = require('mongodb').ObjectID,
     express = require('express'),
     BodyParser = require('body-parser');
 
@@ -95,7 +96,6 @@ var startServer = function (events) {
   });
 
   app.post('/events', function (req, res) {
-    console.log('req', req.body);
     var newEvent = req.body;
     newEvent.owner = "James";
     events.remoteCollection.insert(newEvent, function (err, result) {
@@ -111,8 +111,7 @@ var startServer = function (events) {
   });
 
   app.put('/events/:id', function (req, res) {
-    var id = req.params.id;
-    id = parseInt(id);
+    var id = new ObjectID(req.params.id);
     events.remoteCollection.find({ _id: id }).toArray(function (err, result) {
       console.dir(result);
       if (err) {
@@ -139,8 +138,7 @@ var startServer = function (events) {
   });
 
   app.delete('/events/:id', function (req, res) {
-    var id = req.params.id;
-    id = parseInt(id);
+    var id = new ObjectID(req.params.id);
     events.remoteCollection.remove(
       { _id: id },
       function (err, result) {
