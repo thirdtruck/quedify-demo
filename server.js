@@ -110,25 +110,37 @@ var startServer = function (events) {
     });
   });
 
-  app.put('/events', function (req, res) {
-    events.remoteCollection.update(
-      { _id: req.body._id },
-      { $set: req.body },
-      function (err, result) {
-        if (err) {
-          console.log("Unable to update event: ", err);
-          res.send("Error: " + err);
-        } else {
-          console.dir(result);
-          var id = req.body._id;
-          console.log("Update event with ID " + id);
-          res.send("Updated event with ID: " + id);
-        }
-      });
+  app.put('/events/:id', function (req, res) {
+    var id = req.params.id;
+    id = parseInt(id);
+    events.remoteCollection.find({ _id: id }).toArray(function (err, result) {
+      console.dir(result);
+      if (err) {
+        console.log("Error while finding event with ID " + id);
+        res.send("Error while finding event with ID " + id); // TODO: Use status code here and elsewhere
+      } else if (result.length === 0) {
+        console.log("Found no record with ID " + id + " to update");
+        res.send("Found no record with ID " + id + " to update");
+      } else {
+        events.remoteCollection.update(
+          { _id: id },
+          { $set: req.body },
+          function (err, result) {
+            if (err) {
+              console.log("Unable to update event: ", err);
+              res.send("Error: " + err);
+            } else {
+              console.log("Update event with ID " + id);
+              res.send("Updated event with ID: " + id);
+            }
+          });
+      }
+    });
   });
 
-  app.delete('/events', function (req, res) {
-    var id = req.body._id;
+  app.delete('/events/:id', function (req, res) {
+    var id = req.params.id;
+    id = parseInt(id);
     events.remoteCollection.remove(
       { _id: id },
       function (err, result) {
