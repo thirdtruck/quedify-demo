@@ -6,6 +6,14 @@ var _ = require('underscore'),
     BodyParser = require('body-parser');
 
 var Event = Backbone.Model.extend({
+  defaults: {
+    "title": null,
+    "from": null,
+    "to": null,
+    "location": null,
+    "description": null,
+    "participants": [],
+  },
 });
 
 var Events = Backbone.Collection.extend({
@@ -28,7 +36,7 @@ var Events = Backbone.Collection.extend({
   _findEvents: function (options) {
     var events = this;
 
-    events.remoteCollection.find({}).toArray(function (err, docs) {
+    events.remoteCollection.find({ owner: "James" }).toArray(function (err, docs) {
       if (err) {
         options.error && options.error(err);
       } else {
@@ -50,6 +58,9 @@ var startServer = function (events) {
   app.post('/events', function (req, res) {
     console.log('req', req.body);
     var newEvent = new Event(req.body);
+    newEvent.set("owner", "James");
+    events.add(newEvent);
+    events.sync();
     console.dir(newEvent);
     res.send('Tried to send ' + JSON.stringify(req.body));
   });
