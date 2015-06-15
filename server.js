@@ -3,6 +3,43 @@ var _ = require('underscore'),
     assert = require('assert'),
     MongoClient = require('mongodb').MongoClient;
 
+var Event = Backbone.Model.extend({
+});
+
+var Events = Backbone.Collection.extend({
+  model: Event,
+  initialize: function (options) {
+    var events = this;
+
+    events.mongodb = options.mongodb;
+  },
+  sync: function (method, collection, options) {
+    var events = this;
+
+    console.log("Fetching ...");
+
+    console.dir(method);
+    console.dir(collection);
+    console.dir(options);
+  }
+});
+
+var mongoURL = "mongodb://assessment:assessmentEvents2014@ds037977.mongolab.com:37977/events";
+MongoClient.connect(mongoURL, function (err, db) {
+  assert.equal(null, err); // Full stop if we can't connect
+
+  console.log("Connected to MongoDB at " + mongoURL);
+
+  var events = new Events({ mongodb: db });
+  events.fetch({
+    success: function () { console.log("Fetched successfully!"); },
+    error: function () { console.log("Error while fetching."); }
+  });
+
+  db.close();
+});
+
+/*
 var insertDocuments = function (db, callback) {
   var collection = db.collection('documents');
   collection.insert([
@@ -43,8 +80,6 @@ var findDocuments = function (db, callback) {
     callback(docs);
   });
 };
-
-/*
 var url = "mongodb://assessment:assessmentEvents2014@ds037977.mongolab.com:37977/events";
 MongoClient.connect(url, function (err, db) {
   assert.equal(null, err);
