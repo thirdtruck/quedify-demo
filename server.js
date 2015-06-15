@@ -6,6 +6,7 @@ var _ = require('underscore'),
     BodyParser = require('body-parser');
 
 var Event = Backbone.Model.extend({
+  idAttribute: "_id",
   defaults: {
     "title": null,
     "from": null,
@@ -23,6 +24,10 @@ var Events = Backbone.Collection.extend({
 
     events.mongodb = options.mongodb;
     events.remoteCollection = events.mongodb.collection('events');
+
+    _(events.triggers).each(function (callback, trigger) {
+      events.on(trigger, callback, events);
+    });
   },
   sync: function (method, collection, options) {
     var events = this;
@@ -32,11 +37,45 @@ var Events = Backbone.Collection.extend({
     if (method == "read") {
       events._findEvents(options);
     }
+
+    if (method == "create") {
+      events._updateEvents(options);
+    }
+
+    if (method == "delete") {
+      console.log("Trying to delete");
+    }
+
+    if (method == "update") {
+      console.log("Trying to update");
+    }
   },
   _findEvents: function (options) {
     var events = this;
 
     events.remoteCollection.find({ owner: "James" }).toArray(function (err, docs) {
+      if (err) {
+        options.error && options.error(err);
+      } else {
+        events.set(docs, { silent: true });
+        options.success && options.success(docs);
+      }
+    });
+  },
+  _updateEvents: function (options) {
+    var events = this;
+
+    console.log(events.remoteCollection);
+    var batch = events.remoteCollection.initializeUnorderedBulkOp();
+
+    console.log("options");
+    console.dir(options);
+
+    var upsertResults = events.each(function (evt) {
+      batch.find({ _id : evt.id }).upsert().updateOne({ $set : evt.attributes });
+    });
+
+    batch.execute(function (err, docs) {
       if (err) {
         options.error && options.error(err);
       } else {
@@ -57,16 +96,35 @@ var startServer = function (events) {
 
   app.post('/events', function (req, res) {
     console.log('req', req.body);
-    var newEvent = new Event(req.body);
-    newEvent.set("owner", "James");
-    events.add(newEvent);
-    events.sync();
-    console.dir(newEvent);
-    res.send('Tried to send ' + JSON.stringify(req.body));
+    var newEvent = req.body;
+    newEvent.owner = "James";
+    events.remoteCollection.insert(newEvent, function (err, result) {
+      if (err) {
+        console.log("Unable to create event: ", err);
+        res.send("Error: " + err);
+      } else {
+        var id = result.ops[0]._id;
+        console.log("Created event with ID " + id);
+        res.send("Created new event with ID: " + id);
+      }
+    });
   });
 
   app.put('/events', function (req, res) {
-    res.status(501).send('Request type not available.');
+    events.remoteCollection.update(
+      { _id: req.body._id },
+      { $set: req.body },
+      function (err, result) {
+        if (err) {
+          console.log("Unable to update event: ", err);
+          res.send("Error: " + err);
+        } else {
+          console.dir(result);
+          var id = req.body._id;
+          console.log("Update event with ID " + id);
+          res.send("Updated event with ID: " + id);
+        }
+      });
   });
 
   app.delete('/events', function (req, res) {
