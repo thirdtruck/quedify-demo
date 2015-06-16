@@ -75,8 +75,7 @@ var CreateUpdateEventView = Backbone.View.extend({
   },
   events: {
     "click": function () {
-      console.log("Create/Update Got clicked!");
-      console.log(this.model);
+      uiEventDispatch.trigger("eventCreatedOrUpdated");
     },
   },
 });
@@ -89,8 +88,7 @@ var DeleteEventView = Backbone.View.extend({
   },
   events: {
     "click": function () {
-      console.log("Delete Got clicked!");
-      console.log(this.model);
+      uiEventDispatch.trigger("eventDeleted");
     },
   },
 });
@@ -107,6 +105,22 @@ var CurrentEventView = Backbone.View.extend({
     this.listenTo(uiEventDispatch, "eventSelected", function (evt) {
       this.model = evt;
       this.render();
+    });
+
+    this.listenTo(uiEventDispatch, "eventCreatedOrUpdated", function () {
+      var participants = this.$participants.val().split(/\s*,\s/g);
+
+      this.model.set({
+        title: this.$title.val(),
+        from: this.$from.val(),
+        to: this.$to.val(),
+        location: this.$to.val(),
+        participants: participants,
+      });
+
+      this.$selectedTitle.text(this.model.get('title'));
+
+      uiEventDispatch.trigger("eventsModified");
     });
   },
   render: function () {
