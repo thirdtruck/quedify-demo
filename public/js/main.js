@@ -56,10 +56,15 @@ var EventSearch = Backbone.View.extend({
 
 var CurrentEventView = Backbone.View.extend({
   initialize: function () {
+    this.$selectedTitle = this.$el.find('.selectedTitle');
+
     this.listenTo(uiEventDispatch, "eventSelected", function (evt) {
-      console.log("A new event was selected!");
-      console.log(evt);
+      this.model = evt;
+      this.render();
     });
+  },
+  render: function () {
+    this.$selectedTitle.text(this.model.get('title'));
   },
 });
 
