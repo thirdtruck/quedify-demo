@@ -1,3 +1,5 @@
+var uiEventDispatch = _.extend({}, Backbone.Events); 
+
 var Event = Backbone.Model.extend({
   idAttribute: "_id",
   defaults: {
@@ -21,7 +23,7 @@ var Events = Backbone.Collection.extend({
 var EventOption = Backbone.View.extend({
   events: {
     "click" : function () {
-      console.log("Selecting an event!");
+      uiEventDispatch.trigger("eventSelected", this.model);
     }
   },
   render: function () {
@@ -52,11 +54,21 @@ var EventSearch = Backbone.View.extend({
   },
 });
 
+var CurrentEventView = Backbone.View.extend({
+  initialize: function () {
+    this.listenTo(uiEventDispatch, "eventSelected", function (evt) {
+      console.log("A new event was selected!");
+      console.log(evt);
+    });
+  },
+});
+
 $(document).ready(function () {
   var $eventsForm = $('form[name="events"]');
 
   var events = new Events();
   var eventSearch = new EventSearch({ model: events, el: $eventsForm });
+  var currentEventView = new CurrentEventView({ el: $eventsForm });
 
   events.fetch();
 });
