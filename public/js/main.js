@@ -57,6 +57,11 @@ var EventSearch = Backbone.View.extend({
 var CurrentEventView = Backbone.View.extend({
   initialize: function () {
     this.$selectedTitle = this.$el.find('.selectedTitle');
+    this.$title = this.$el.find('[name="title"]');
+    this.$from = this.$el.find('[name="from"]');
+    this.$to = this.$el.find('[name="to"]');
+    this.$location = this.$el.find('[name="location"]');
+    this.$participants = this.$el.find('[name="participants"]');
 
     this.listenTo(uiEventDispatch, "eventSelected", function (evt) {
       this.model = evt;
@@ -65,6 +70,13 @@ var CurrentEventView = Backbone.View.extend({
   },
   render: function () {
     this.$selectedTitle.text(this.model.get('title'));
+    this.$title.val(this.model.get('title'));
+    this.$from.val(this.model.get('from'));
+    this.$to.val(this.model.get('to'));
+    this.$location.val(this.model.get('location'));
+
+    var participants = this.model.get('participants').join(', ');
+    this.$participants.val(participants);
   },
 });
 
