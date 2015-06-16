@@ -25,12 +25,20 @@ var startServer = function (events) {
   app.use(express.static('public'));
 
   app.get('/events', function (req, res) {
-    events.remoteCollection.find({ owner: "James" }).toArray(function (err, result) {
+    var searchQuery = { owner: "James" };
+
+    var titleStartsWith = req.query.titleStartsWith;
+
+    if (titleStartsWith) {
+      searchQuery.title = { $regex: '^' + titleStartsWith, $options: 'i' };
+    };
+
+    events.remoteCollection.find(searchQuery).toArray(function (err, result) {
       if (err) {
-        console.log("Unable to fetch all events: ", err);
+        console.log("Unable to fetch events: ", err);
         res.send("Error: " + err);
       } else {
-        console.log("Fetched all events");
+        console.log("Fetched events");
         console.dir(result)
         res.json(result);
       }
