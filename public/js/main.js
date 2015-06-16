@@ -40,10 +40,11 @@ var EventOption = Backbone.View.extend({
   },
   _optionLabel: function () {
     var title = this.model.get("title");
-    var from = this.model.get("from");
-    var to = this.model.get("to");
+    var from = this.model.get("from") || "";
+    var to = this.model.get("to") || "";
 
-    var label = title + (_.isNull(from) ? "" : " " + from) + (_.isNull(to) ? "" : "-" + to);
+    // TODO: Use a template
+    var label = title + (_.isEmpty(from) ? "" : " " + from) + (_.isEmpty(to) ? "" : "-" + to);
 
     return label;
   }
@@ -111,6 +112,7 @@ var CurrentEventView = Backbone.View.extend({
     this.$from = this.$el.find('[name="from"]');
     this.$to = this.$el.find('[name="to"]');
     this.$location = this.$el.find('[name="location"]');
+    this.$description = this.$el.find('[name="description"]');
     this.$participants = this.$el.find('[name="participants"]');
 
     this.listenTo(uiEventDispatch, "eventSelected", function (evt) {
@@ -132,6 +134,7 @@ var CurrentEventView = Backbone.View.extend({
         from: this.$from.val(),
         to: this.$to.val(),
         location: this.$to.val(),
+        description: this.$to.val(),
         participants: participants,
       });
 
@@ -150,6 +153,7 @@ var CurrentEventView = Backbone.View.extend({
     this.$from.val(this.model.get('from'));
     this.$to.val(this.model.get('to'));
     this.$location.val(this.model.get('location'));
+    this.$description.val(this.model.get('description'));
 
     var participants = this.model.get('participants').join(', ');
     this.$participants.val(participants);
