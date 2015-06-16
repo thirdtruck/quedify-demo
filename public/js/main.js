@@ -54,6 +54,34 @@ var EventSearch = Backbone.View.extend({
   },
 });
 
+var CreateUpdateEventView = Backbone.View.extend({
+  initialize: function () {
+    this.listenTo(uiEventDispatch, "eventSelected", function (evt) {
+      this.model = evt;
+    });
+  },
+  events: {
+    "click": function () {
+      console.log("Create/Update Got clicked!");
+      console.log(this.model);
+    },
+  },
+});
+
+var DeleteEventView = Backbone.View.extend({
+  initialize: function () {
+    this.listenTo(uiEventDispatch, "eventSelected", function (evt) {
+      this.model = evt;
+    });
+  },
+  events: {
+    "click": function () {
+      console.log("Delete Got clicked!");
+      console.log(this.model);
+    },
+  },
+});
+
 var CurrentEventView = Backbone.View.extend({
   initialize: function () {
     this.$selectedTitle = this.$el.find('.selectedTitle');
@@ -82,10 +110,17 @@ var CurrentEventView = Backbone.View.extend({
 
 $(document).ready(function () {
   var $eventsForm = $('form[name="events"]');
+  $eventsForm[0].reset();
 
   var events = new Events();
   var eventSearch = new EventSearch({ model: events, el: $eventsForm });
   var currentEventView = new CurrentEventView({ el: $eventsForm });
+
+  var $createUpdateEvent = $eventsForm.find('[name="createUpdate"]');
+  var createUpdateEventView = new CreateUpdateEventView({ el: $createUpdateEvent });
+
+  var $deleteEvent = $eventsForm.find('[name="delete"]');
+  var deleteEventView = new DeleteEventView({ el: $deleteEvent });
 
   events.fetch();
 });
