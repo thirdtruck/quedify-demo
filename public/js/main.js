@@ -18,6 +18,18 @@ var Events = Backbone.Collection.extend({
   url: '/events',
 });
 
+var EventOption = Backbone.View.extend({
+  events: {
+    "click" : function () {
+      console.log("Selecting an event!");
+    }
+  },
+  render: function () {
+    this.$el.attr('value', this.model.id);
+    this.$el.text(this.model.optionLabel());
+  }
+});
+
 var EventSearch = Backbone.View.extend({
   events: { },
   initialize: function () {
@@ -27,13 +39,16 @@ var EventSearch = Backbone.View.extend({
     this.listenTo(this.model, "add", this.render);
   },
   render: function () {
-    var $options = this.model.map(function (evt) {
-      var $option = $('<option value="' + evt.id + '">' + evt.optionLabel() + '</option>'); // TODO: Replace with safer templating
-      return $option;
-    });
+    var $searchResults = this.$searchResults;
 
-    this.$searchResults.empty();
-    this.$searchResults.append($options);
+    $searchResults.empty();
+
+    this.model.each(function (evt) {
+      var $option = $("<option/>");
+      var option = new EventOption({ model: evt, el: $option });
+      option.render();
+      $searchResults.append(option.$el);
+    });
   },
 });
 
