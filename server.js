@@ -4,7 +4,8 @@ var _ = require('underscore'),
     MongoClient = require('mongodb').MongoClient,
     ObjectID = require('mongodb').ObjectID,
     express = require('express'),
-    BodyParser = require('body-parser');
+    BodyParser = require('body-parser'),
+    async = require('async');
 
 var Event = Backbone.Model.extend({
   idAttribute: "_id",
@@ -51,31 +52,65 @@ var startServer = function (events) {
     });
   });
 
-  app.put('/events/:id', function (req, res) {
-    var id = new ObjectID(req.params.id);
+  var updateEvent = function (updatedAttributes, onSuccess, onError) {
+    var id = updatedAttributes._id;
+    console.log("Searching for:");
+    console.log(id);
     events.remoteCollection.find({ owner: "James", _id: id }).toArray(function (err, result) {
       console.dir(result);
       if (err) {
         console.log("Error while finding event with ID " + id);
-        res.send("Error while finding event with ID " + id); // TODO: Use status code here and elsewhere
+        onError(err);
       } else if (result.length === 0) {
         console.log("Found no record with ID " + id + " to update");
-        res.send("Found no record with ID " + id + " to update");
+        onError("Found no record with ID " + id + " to update");
       } else {
         events.remoteCollection.update(
           { _id: id },
-          { $set: req.body },
+          { $set: updatedAttributes },
           function (err, result) {
             if (err) {
               console.log("Unable to update event: ", err);
-              res.send("Error: " + err);
+              onError(err);
             } else {
               console.log("Update event with ID " + id);
-              res.send("Updated event with ID: " + id);
+              onSuccess(result);
             }
           });
       }
     });
+  };
+
+  app.put('/events', function (req, res) {
+    // TODO: Make this a batch operation
+    var onComplete = function (err, results) {
+      if (err) {
+        console.log("Update to update events: ", err);
+        res.send("Error: " + err);
+      } else {
+        console.log("Updated events");
+        res.send("Events updated");
+      }
+    };
+
+    var onEachEvent = function (updatedAttributes, callback) {
+      updatedAttributes._id = new ObjectID(updatedAttributes._id);
+      updateEvent(updatedAttributes,
+        function (err) { callback(err); },
+        function (result) { callback(null, result) }
+      );
+    };
+
+    async.map(req.body, onEachEvent, onComplete);
+  });
+
+  app.put('/events/:id', function (req, res) {
+    var updatedAttributes = req.body;
+    updatedAttributes._id = new ObjectID(req.params.id);
+    updateEvent(updatedAttributes,
+      function (err) { res.send("Error: " + err); },
+      function (result) { res.send("Updated event with ID: " + id); }
+    );
   });
 
   app.delete('/events/:id', function (req, res) {

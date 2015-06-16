@@ -15,6 +15,13 @@ var Event = Backbone.Model.extend({
 var Events = Backbone.Collection.extend({
   model: Event,
   url: '/events',
+  initialize: function () {
+    var events = this;
+
+    events.listenTo(uiEventDispatch, "eventsModified", function () {
+      events.sync("update", events);
+    });
+  },
 });
 
 var EventOption = Backbone.View.extend({
@@ -108,6 +115,10 @@ var CurrentEventView = Backbone.View.extend({
     });
 
     this.listenTo(uiEventDispatch, "eventCreatedOrUpdated", function () {
+      if (! this.model) { // e.g. before the user has selected their first event
+        return;
+      }
+
       var participants = this.$participants.val().split(/\s*,\s/g);
 
       this.model.set({
