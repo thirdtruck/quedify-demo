@@ -127,6 +127,8 @@ var CurrentEventView = Backbone.View.extend({
 
       var isNewEvent = this.model._id ? false : true;
 
+      // TODO: Validation goes here
+
       var participants = this.$participants.val().split(/\s*,\s/g);
 
       this.model.set({
@@ -160,6 +162,22 @@ var CurrentEventView = Backbone.View.extend({
   },
 });
 
+var LoadingView = Backbone.View.extend({
+  initialize: function () {
+    var view = this;
+
+    view.$formElements = this.$el.find('input, button, .button, select');
+
+    view.listenTo(uiEventDispatch, "startAsyncOp", function () {
+      view.$formElements.attr('disabled', 'disabled');
+    });
+
+    view.listenTo(uiEventDispatch, "stopAsyncOp", function () {
+      view.$formElements.removeAttr('disabled');
+    });
+  },
+});
+
 $(document).ready(function () {
   var $eventsForm = $('form[name="events"]');
   $eventsForm[0].reset();
@@ -173,6 +191,8 @@ $(document).ready(function () {
 
   var $deleteEvent = $eventsForm.find('[name="delete"]');
   var deleteEventView = new DeleteEventView({ el: $deleteEvent });
+
+  var loadingView = new LoadingView({ el: $eventsForm });
 
   events.fetch();
 });
