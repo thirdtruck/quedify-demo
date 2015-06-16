@@ -10,9 +10,6 @@ var Event = Backbone.Model.extend({
     "description": null,
     "participants": [],
   },
-  optionLabel: function () {
-    return this.get("title") + " " + this.get("from") + "-" + this.get("to");
-  },
 });
 
 var Events = Backbone.Collection.extend({
@@ -28,7 +25,10 @@ var EventOption = Backbone.View.extend({
   },
   render: function () {
     this.$el.attr('value', this.model.id);
-    this.$el.text(this.model.optionLabel());
+    this.$el.text(this._optionLabel());
+  },
+  _optionLabel: function () {
+    return this.model.get("title") + " " + this.model.get("from") + "-" + this.model.get("to");
   }
 });
 
