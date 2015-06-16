@@ -18,6 +18,10 @@ var Events = Backbone.Collection.extend({
   initialize: function () {
     var events = this;
 
+    events.listenTo(uiEventDispatch, "newEventCreated", function (newEvent) {
+      events.add(newEvent);
+    });
+
     events.listenTo(uiEventDispatch, "eventsModified", function () {
       events.sync("update", events);
     });
@@ -119,6 +123,8 @@ var CurrentEventView = Backbone.View.extend({
         return;
       }
 
+      var isNewEvent = this.model._id ? false : true;
+
       var participants = this.$participants.val().split(/\s*,\s/g);
 
       this.model.set({
@@ -128,6 +134,10 @@ var CurrentEventView = Backbone.View.extend({
         location: this.$to.val(),
         participants: participants,
       });
+
+      if (isNewEvent) {
+        uiEventDispatch.trigger("newEventCreated", this.model);
+      }
 
       this.$selectedTitle.text(this.model.get('title'));
 

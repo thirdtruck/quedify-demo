@@ -52,12 +52,26 @@ var startServer = function (events) {
     });
   });
 
+  var createEvent = function (newAttributes, onSuccess, onError) {
+    delete newAttributes._id; // We don't want it inserting a record with a null ID
+    newAttributes.owner = "James";
+
+    events.remoteCollection.insert(
+      newAttributes,
+      function (err, result) {
+        if (err) {
+          console.log("Unable to create event: ", err);
+          onError(err);
+        } else {
+          console.log("Created event");
+          onSuccess(result);
+        }
+      });
+  };
+
   var updateEvent = function (updatedAttributes, onSuccess, onError) {
     var id = updatedAttributes._id;
-    console.log("Searching for:");
-    console.log(id);
     events.remoteCollection.find({ owner: "James", _id: id }).toArray(function (err, result) {
-      console.dir(result);
       if (err) {
         console.log("Error while finding event with ID " + id);
         onError(err);
@@ -85,20 +99,27 @@ var startServer = function (events) {
     // TODO: Make this a batch operation
     var onComplete = function (err, results) {
       if (err) {
-        console.log("Update to update events: ", err);
+        console.log("Unable to update events: ", err);
         res.send("Error: " + err);
       } else {
         console.log("Updated events");
-        res.send("Events updated");
+        res.send("Updated events");
       }
     };
 
     var onEachEvent = function (updatedAttributes, callback) {
-      updatedAttributes._id = new ObjectID(updatedAttributes._id);
-      updateEvent(updatedAttributes,
-        function (err) { callback(err); },
-        function (result) { callback(null, result) }
-      );
+      if (updatedAttributes._id) { // Existing event
+        updatedAttributes._id = new ObjectID(updatedAttributes._id);
+        updateEvent(updatedAttributes,
+          function (err) { callback(err); },
+          function (result) { callback(null, result) }
+        );
+      } else { // New event
+        createEvent(updatedAttributes,
+          function (err) { callback(err); },
+          function (result) { callback(null, result) }
+        );
+      }
     };
 
     async.map(req.body, onEachEvent, onComplete);
