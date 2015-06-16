@@ -28,7 +28,13 @@ var EventOption = Backbone.View.extend({
     this.$el.text(this._optionLabel());
   },
   _optionLabel: function () {
-    return this.model.get("title") + " " + this.model.get("from") + "-" + this.model.get("to");
+    var title = this.model.get("title");
+    var from = this.model.get("from");
+    var to = this.model.get("to");
+
+    var label = title + (_.isNull(from) ? "" : " " + from) + (_.isNull(to) ? "" : "-" + to);
+
+    return label;
   }
 });
 
@@ -51,6 +57,13 @@ var EventSearch = Backbone.View.extend({
       option.render();
       $searchResults.append(option.$el);
     });
+
+    var $optionNew = $('<option/>');
+    var eventNew = new Event({ title: "(New)" });
+    var optionNew = new EventOption({ model: eventNew, el: $optionNew });
+    optionNew.render();
+
+    $searchResults.append(optionNew.$el);
   },
 });
 
