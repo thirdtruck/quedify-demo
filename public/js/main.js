@@ -15,8 +15,9 @@ var Event = Backbone.Model.extend({
 var Events = Backbone.Collection.extend({
   model: Event,
   url: '/events',
-  initialize: function () {
+  initialize: function (options) {
     var events = this;
+    events.searchQuery = options.searchQuery;
 
     events.listenTo(uiEventDispatch, "newEventCreated", function (newEvent) {
       events.add(newEvent);
@@ -25,6 +26,26 @@ var Events = Backbone.Collection.extend({
     events.listenTo(uiEventDispatch, "eventsModified", function () {
       events.sync("update", events);
     });
+
+    events.listenTo(uiEventDispatch, "searchQueryModified", function () {
+      // TODO: Use an event queue and setTimeout to rate-limit these queries
+      events.fetch({ data: events.searchQuery.attributes });
+    });
+  },
+});
+
+var SearchQuery = Backbone.Model.extend({
+  defaults: {
+    titleStartsWith: '',
+  },
+});
+
+var SearchQueryView = Backbone.View.extend({
+  events: {
+    keyup: function () {
+      this.model.set('titleStartsWith', this.$el.val());
+      uiEventDispatch.trigger("searchQueryModified");
+    },
   },
 });
 
@@ -51,12 +72,9 @@ var EventOption = Backbone.View.extend({
 });
 
 var EventSearch = Backbone.View.extend({
-  events: { },
   initialize: function () {
-    this.$searchQuery = this.$el.find('[name="searchQuery"]');
     this.$searchResults = this.$el.find('[name="searchResults"]');
-    this.listenTo(this.model, "change", this.render);
-    this.listenTo(this.model, "add", this.render);
+    this.listenTo(this.model, "all", this.render); // TODO: Respond to less events to avoid extraneous renderings
   },
   render: function () {
     var $searchResults = this.$searchResults;
@@ -182,8 +200,13 @@ $(document).ready(function () {
   var $eventsForm = $('form[name="events"]');
   $eventsForm[0].reset();
 
-  var events = new Events();
+  var searchQuery = new SearchQuery();
+  var $searchQuery = $eventsForm.find('[name="searchQuery"]');
+  var searchQueryView = new SearchQueryView({ model: searchQuery, el: $searchQuery });
+
+  var events = new Events({ searchQuery: searchQuery });
   var eventSearch = new EventSearch({ model: events, el: $eventsForm });
+
   var currentEventView = new CurrentEventView({ el: $eventsForm });
 
   var $createUpdateEvent = $eventsForm.find('[name="createUpdate"]');
