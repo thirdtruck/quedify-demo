@@ -26,14 +26,16 @@ var startServer = function (events) {
 
   app.get('/events', function (req, res) {
     var searchQuery = { owner: "James" };
+    var options = { };
 
     var titleStartsWith = req.query.titleStartsWith;
 
     if (titleStartsWith) {
       searchQuery.title = { $regex: '^' + titleStartsWith, $options: 'i' };
+      options.limit = 10;
     };
 
-    events.remoteCollection.find(searchQuery).toArray(function (err, result) {
+    events.remoteCollection.find(searchQuery, options).toArray(function (err, result) {
       if (err) {
         console.log("Unable to fetch events: ", err);
         res.send("Error: " + err);
